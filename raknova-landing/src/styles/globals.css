@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
+
+@layer components {
+  .auth-input {
+    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 
+           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all;
+  }
+  .auth-input-error {
+    @apply border-red-300 bg-red-50;
+  }
+  
+  /* Subtle AI-themed gradient background for auth pages */
+  .auth-bg {
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(26, 111, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(108, 92, 231, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(26, 111, 255, 0.02) 0%, transparent 50%),
+      #f9fafb;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+}
