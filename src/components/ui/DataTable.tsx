@@ -86,7 +86,7 @@ export function DataTable<T extends { id: number }>({
                     {col.header}
                     {sortKey === col.key && (
                       <svg
-                        className={cn("w-3 h-3 transition-transform", sortDirection === "desc" ? "rotate-180" : "")}
+                        className={cn("w-3 h-3", sortDirection === "desc" ? "rotate-180" : "")}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -124,8 +124,8 @@ export function DataTable<T extends { id: number }>({
           <div>
             {exportEnabled && (
               <Button variant="outline" size="sm" onClick={handleExportCSV}>
-                <svg className="w-4 h-4 mr-1.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Export CSV
               </Button>

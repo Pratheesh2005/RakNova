@@ -188,8 +188,34 @@ export function JobDetailDrawer({ isOpen, onClose, job }: JobDetailDrawerProps) 
 
               {/* Action Buttons */}
               <div className="flex gap-3 pt-4 border-t border-gray-100">
-                <Button variant="primary" size="lg" className="flex-1">Apply Now</Button>
-                <Button variant="outline" size="lg">Save Job</Button>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="flex-1"
+                  onClick={() => {
+                    import("@/data/centralStore").then(({ centralStore }) => {
+                      centralStore.applyForJob({
+                        candidateId: "can-401",
+                        candidateName: "Rohan Nair",
+                        candidateEmail: "rohan.nair@example.com",
+                        candidatePhone: "+91 98765 43210",
+                        jobId: String(job.id),
+                        jobTitle: job.position,
+                        companyId: "cmp-201",
+                        companyName: job.company,
+                        resumeFileName: "Rohan_Nair_FullStack_Resume.pdf",
+                        aiMatchScore: job.matchPercentage,
+                      });
+                      alert(`Successfully applied for ${job.position} at ${job.company}!`);
+                      onClose();
+                    });
+                  }}
+                >
+                  Apply Now
+                </Button>
+                <Button variant="outline" size="lg" onClick={() => alert("Job saved to your bookmarks.")}>
+                  Save Job
+                </Button>
               </div>
             </div>
           </motion.div>

@@ -17,19 +17,31 @@ export function CompanyTopNav() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <>
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div className="flex items-center justify-between h-16 px-4 lg:px-8">
+          {/* Search trigger */}
           <button
             onClick={() => setPaletteOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:bg-gray-50 transition-colors"
           >
             <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <span>Search...</span>
-            <kbd className="ml-2 px-1.5 py-0.5 text-xs text-gray-400 bg-gray-100 border border-gray-200 rounded font-mono">⌘K</kbd>
+            <kbd className="ml-auto px-1.5 py-0.5 text-xs text-gray-400 bg-gray-100 border border-gray-200 rounded font-mono">⌘K</kbd>
           </button>
 
           <div className="flex items-center gap-3 ml-auto">
@@ -42,12 +54,12 @@ export function CompanyTopNav() {
               </svg>
             </button>
 
-            <Link href="/company/notifications" className="relative p-2 rounded-lg hover:bg-gray-100 block">
+            <button className="relative p-2 rounded-lg hover:bg-gray-100">
               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-            </Link>
+            </button>
 
             <div ref={profileRef} className="relative">
               <button onClick={() => setProfileOpen(!profileOpen)} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100">
@@ -61,7 +73,7 @@ export function CompanyTopNav() {
                   <Link href="/company/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Company Profile</Link>
                   <Link href="/company/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Settings</Link>
                   <hr className="my-1 border-gray-100" />
-                  <Link href="/auth/login" className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Logout</Link>
+                  <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Logout</button>
                 </div>
               )}
             </div>

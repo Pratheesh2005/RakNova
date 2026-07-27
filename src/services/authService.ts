@@ -7,6 +7,7 @@ export interface AuthUser {
   role: UserRole;
   companyName?: string;
   loginTime: string;
+  status?: "Active" | "Pending Verification" | "Suspended";
 }
 
 interface DemoAccount {
@@ -25,6 +26,7 @@ const demoAccounts: DemoAccount[] = [
       email: "candidate@raknova.com",
       role: "candidate",
       loginTime: "",
+      status: "Active",
     },
   },
   {
@@ -37,6 +39,7 @@ const demoAccounts: DemoAccount[] = [
       role: "company",
       companyName: "TechNova Solutions",
       loginTime: "",
+      status: "Active",
     },
   },
   {
@@ -49,6 +52,7 @@ const demoAccounts: DemoAccount[] = [
       role: "recruiter",
       companyName: "TechNova Solutions",
       loginTime: "",
+      status: "Active",
     },
   },
   {
@@ -60,6 +64,7 @@ const demoAccounts: DemoAccount[] = [
       email: "admin@raknova.com",
       role: "admin",
       loginTime: "",
+      status: "Active",
     },
   },
 ];
@@ -76,7 +81,6 @@ const dashboardRoutes: Record<UserRole, string> = {
 
 /**
  * Authenticate user with email and password.
- * Returns AuthUser on success, null on failure.
  */
 export function login(email: string, password: string): AuthUser | null {
   const account = demoAccounts.find(
@@ -84,6 +88,11 @@ export function login(email: string, password: string): AuthUser | null {
   );
 
   if (!account) return null;
+
+  if (account.user.status === "Pending Verification") {
+    alert("Your account is currently Pending Approval by Super Admin.");
+    return null;
+  }
 
   const user: AuthUser = {
     ...account.user,
@@ -95,30 +104,59 @@ export function login(email: string, password: string): AuthUser | null {
 }
 
 /**
- * Logout the current user.
+ * Register candidate account.
+ */
+export function registerCandidate(name: string, email: string): AuthUser {
+  const newCandidate: AuthUser = {
+    id: `can-${Date.now()}`,
+    name,
+    email,
+    role: "candidate",
+    loginTime: new Date().toISOString(),
+    status: "Active",
+  };
+  saveUser(newCandidate);
+  return newCandidate;
+}
+
+/**
+ * Register company account (Pending Verification).
+ */
+export function registerCompany(name: string, email: string, companyName: string): AuthUser {
+  const newCompany: AuthUser = {
+    id: `cmp-${Date.now()}`,
+    name,
+    email,
+    role: "company",
+    companyName,
+    loginTime: new Date().toISOString(),
+    status: "Pending Verification",
+  };
+  saveUser(newCompany);
+  return newCompany;
+}
+
+/**
+ * Logout current user.
  */
 export function logout(): void {
   removeUser();
 }
 
 /**
- * Get the currently logged-in user from storage.
+ * Get current user.
  */
 export function getCurrentUser(): AuthUser | null {
   if (typeof window === "undefined") return null;
-
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return null;
 
     const user: AuthUser = JSON.parse(stored);
-
-    // Validate user data
     if (!user.id || !user.email || !user.role) {
       removeUser();
       return null;
     }
-
     return user;
   } catch {
     removeUser();
@@ -127,21 +165,21 @@ export function getCurrentUser(): AuthUser | null {
 }
 
 /**
- * Check if user is authenticated.
+ * Check if authenticated.
  */
 export function isAuthenticated(): boolean {
   return getCurrentUser() !== null;
 }
 
 /**
- * Get the dashboard route for a given role.
+ * Get dashboard route for role.
  */
 export function getDashboardRoute(role: UserRole): string {
   return dashboardRoutes[role] || "/candidate";
 }
 
 /**
- * Get all demo accounts for display purposes.
+ * Get all demo accounts.
  */
 export function getDemoAccounts(): { email: string; role: UserRole; name: string }[] {
   return demoAccounts.map((a) => ({
@@ -152,7 +190,7 @@ export function getDemoAccounts(): { email: string; role: UserRole; name: string
 }
 
 /**
- * Check if user has access to a specific route.
+ * Check if user has access to a specific role list.
  */
 export function hasAccess(user: AuthUser | null, allowedRoles: UserRole[]): boolean {
   if (!user) return false;
@@ -160,7 +198,40 @@ export function hasAccess(user: AuthUser | null, allowedRoles: UserRole[]): bool
 }
 
 /**
- * Switch to a different demo account (development only).
+ * Check route-level authorization & returning redirect path if unauthorized.
+ */
+export function checkRouteAccess(path: string, user: AuthUser | null): { allowed: boolean; redirectUrl?: string } {
+  if (!user) {
+    if (path.startsWith("/candidate") || path.startsWith("/company") || path.startsWith("/recruiter") || path.startsWith("/admin")) {
+      return { allowed: false, redirectUrl: "/login" };
+    }
+    return { allowed: true };
+  }
+
+  // Super Admin has universal portal access
+  if (user.role === "admin") return { allowed: true };
+
+  if (path.startsWith("/admin")) {
+    return { allowed: false, redirectUrl: getDashboardRoute(user.role) };
+  }
+
+  if (path.startsWith("/company") && user.role !== "company") {
+    return { allowed: false, redirectUrl: getDashboardRoute(user.role) };
+  }
+
+  if (path.startsWith("/recruiter") && user.role !== "recruiter") {
+    return { allowed: false, redirectUrl: getDashboardRoute(user.role) };
+  }
+
+  if (path.startsWith("/candidate") && user.role !== "candidate") {
+    return { allowed: false, redirectUrl: getDashboardRoute(user.role) };
+  }
+
+  return { allowed: true };
+}
+
+/**
+ * Switch role for testing.
  */
 export function switchRole(role: UserRole): AuthUser {
   const account = demoAccounts.find((a) => a.user.role === role);
@@ -176,15 +247,13 @@ export function switchRole(role: UserRole): AuthUser {
 }
 
 /**
- * Subscribe to auth state changes.
+ * Auth change listener.
  */
 export function onAuthChange(callback: (user: AuthUser | null) => void): () => void {
   const handler = () => callback(getCurrentUser());
   window.addEventListener(AUTH_EVENT, handler);
   return () => window.removeEventListener(AUTH_EVENT, handler);
 }
-
-// Private helpers
 
 function saveUser(user: AuthUser): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));

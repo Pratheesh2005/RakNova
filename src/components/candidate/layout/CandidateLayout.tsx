@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopNav } from "./TopNav";
+import { FloatingAI } from "@/components/ui/FloatingAI";
 
 interface CandidateLayoutProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ export function CandidateLayout({ children }: CandidateLayoutProps) {
         <TopNav />
         <main className="p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
+      <FloatingAI />
     </div>
   );
 }

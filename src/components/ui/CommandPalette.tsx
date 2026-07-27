@@ -10,12 +10,12 @@ interface SearchItem {
 }
 
 const allSearchItems: SearchItem[] = [
-  { id: "1", label: "Priya Sharma", category: "Candidates", url: "/company/candidates/1" },
-  { id: "2", label: "Arun Kumar", category: "Candidates", url: "/company/candidates/2" },
-  { id: "3", label: "Senior Frontend Developer", category: "Jobs", url: "/company/jobs/1" },
-  { id: "4", label: "ML Engineer", category: "Jobs", url: "/company/jobs/2" },
-  { id: "5", label: "Interview: Priya Sharma", category: "Interviews", url: "/company/interviews/1" },
-  { id: "6", label: "Company Dashboard", category: "Navigation", url: "/company" },
+  { id: "1", label: "Priya Sharma", category: "Candidate", url: "/company/candidates" },
+  { id: "2", label: "Arun Kumar", category: "Candidate", url: "/company/candidates" },
+  { id: "3", label: "Senior Frontend Developer", category: "Job", url: "/company/jobs" },
+  { id: "4", label: "ML Engineer", category: "Job", url: "/company/jobs" },
+  { id: "5", label: "Interview: Priya Sharma", category: "Interview", url: "/company/interviews" },
+  { id: "6", label: "Dashboard", category: "Navigation", url: "/company" },
   { id: "7", label: "Candidate Management", category: "Navigation", url: "/company/candidates" },
   { id: "8", label: "Job Management", category: "Navigation", url: "/company/jobs" },
   { id: "9", label: "Recruitment Pipeline", category: "Navigation", url: "/company/pipeline" },
@@ -24,15 +24,8 @@ const allSearchItems: SearchItem[] = [
   { id: "12", label: "AI Candidate Matching", category: "Navigation", url: "/company/ai-matching" },
   { id: "13", label: "Team Management", category: "Navigation", url: "/company/team" },
   { id: "14", label: "Company Profile", category: "Navigation", url: "/company/profile" },
-  { id: "15", label: "Company Notifications", category: "Navigation", url: "/company/notifications" },
-  { id: "16", label: "Company Settings", category: "Navigation", url: "/company/settings" },
-  { id: "17", label: "Recruiter Dashboard", category: "Navigation", url: "/recruiter" },
-  { id: "18", label: "Assigned Candidates", category: "Navigation", url: "/recruiter/candidates" },
-  { id: "19", label: "Assigned Jobs", category: "Navigation", url: "/recruiter/jobs" },
-  { id: "20", label: "Candidate Communication", category: "Navigation", url: "/recruiter/communication" },
-  { id: "21", label: "Interview Schedule", category: "Navigation", url: "/recruiter/interviews" },
-  { id: "22", label: "My Work Insights", category: "Navigation", url: "/recruiter/work-insights" },
-  { id: "23", label: "Help & Support", category: "Navigation", url: "/recruiter/help-support" },
+  { id: "15", label: "Notifications", category: "Navigation", url: "/company/notifications" },
+  { id: "16", label: "Settings", category: "Navigation", url: "/company/settings" },
 ];
 
 export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -51,12 +44,12 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        if (isOpen) onClose();
+        onClose(); // parent toggles
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [onClose]);
 
   const filteredItems = query
     ? allSearchItems.filter(
@@ -112,18 +105,18 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
                   onClick={() => handleSelect(item.url)}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-sm font-medium text-blue-700 flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-sm font-medium text-blue-700">
                     {item.category.charAt(0)}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">{item.label}</p>
-                    <p className="text-xs text-gray-500 truncate">{item.category}</p>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{item.label}</p>
+                    <p className="text-xs text-gray-500">{item.category}</p>
                   </div>
-                  <span className="ml-auto text-xs text-gray-400 flex-shrink-0">↵</span>
+                  <span className="ml-auto text-xs text-gray-400">↵</span>
                 </button>
               ))}
             </div>
-            <div className="border-t border-gray-100 px-4 py-2 flex items-center gap-4 text-xs text-gray-400">
+            <div className="border-t border-gray-100 px-4 py-2 flex items-center gap-2 text-xs text-gray-400">
               <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 bg-gray-100 border rounded text-[10px]">↑↓</kbd> Navigate</span>
               <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 bg-gray-100 border rounded text-[10px]">↵</kbd> Open</span>
               <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 bg-gray-100 border rounded text-[10px]">Esc</kbd> Close</span>

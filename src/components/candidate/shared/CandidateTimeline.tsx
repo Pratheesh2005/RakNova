@@ -25,7 +25,7 @@ export function CandidateTimeline({ currentStage }: CandidateTimelineProps) {
           <div className="flex flex-col items-center">
             <div
               className={cn(
-                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all",
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all",
                 idx < displayIndex
                   ? "bg-blue-100 border-blue-500 text-blue-700"
                   : idx === displayIndex
@@ -40,7 +40,7 @@ export function CandidateTimeline({ currentStage }: CandidateTimelineProps) {
           {idx < stages.length - 1 && (
             <div
               className={cn(
-                "h-0.5 w-6 mx-1 mb-4",
+                "h-0.5 w-8 mx-1",
                 idx < displayIndex ? "bg-blue-500" : "bg-gray-300"
               )}
             />
