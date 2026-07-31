@@ -11,6 +11,7 @@ class Settings:
     AI_PROVIDER: str = os.getenv("AI_PROVIDER", "gemini").lower()
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:0907@localhost:5432/raknova_db")
     
     @property
     def gemini_configured(self) -> bool:

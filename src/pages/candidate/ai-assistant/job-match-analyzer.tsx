@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
+import { getApiEndpoint } from "@/utils/apiConfig";
 
 interface MatchBreakdown {
   skills_match: number;
@@ -91,14 +92,15 @@ export default function JobMatchAnalyzerPage() {
       if (jdText.trim()) formData.append("job_description", jdText);
       if (jdFile) formData.append("jd_file", jdFile);
 
+      const endpoint = getApiEndpoint("/ai/job-match/analyze");
       let res: Response | null = null;
       try {
-        res = await fetch("http://localhost:8000/api/v1/ai/job-match/analyze", {
+        res = await fetch(endpoint, {
           method: "POST",
           body: formData,
         });
       } catch {
-        res = await fetch("http://127.0.0.1:8000/api/v1/ai/job-match/analyze", {
+        res = await fetch(endpoint, {
           method: "POST",
           body: formData,
         });

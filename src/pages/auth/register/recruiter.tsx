@@ -9,6 +9,8 @@ import Link from "next/link";
 import { cn } from "@/utils/cn";
 import { useRouter } from "next/router";
 
+import { registerUserApi } from "@/services/authService";
+
 export default function RecruiterRegistrationPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -19,6 +21,7 @@ export default function RecruiterRegistrationPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const validate = (): boolean => {
@@ -36,11 +39,23 @@ export default function RecruiterRegistrationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setApiError(null);
     if (!validate()) return;
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setLoading(false);
-    router.push("/auth/registration-success");
+    try {
+      await registerUserApi({
+        name: fullName,
+        email,
+        password,
+        role: "recruiter",
+        phone: `${countryCode} ${phone}`,
+      });
+      setLoading(false);
+      router.push("/auth/registration-success");
+    } catch (err: any) {
+      setLoading(false);
+      setApiError(err.message || "Failed to register recruiter account.");
+    }
   };
 
   return (
@@ -49,6 +64,11 @@ export default function RecruiterRegistrationPage() {
       subtitle="Manage hiring and candidate screening efficiently"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {apiError && (
+          <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-lg">
+            {apiError}
+          </div>
+        )}
         {/* Full Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

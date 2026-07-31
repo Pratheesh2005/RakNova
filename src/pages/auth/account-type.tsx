@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Link from "next/link";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { RoleCard } from "@/components/auth/RoleCard";
 import { Button } from "@/components/ui/Button";
@@ -82,9 +83,9 @@ export default function AccountTypePage() {
 
         <p className="text-center text-sm text-gray-600 mt-4">
           Already have an account?{" "}
-          <a href="/auth/login" className="text-brand-600 hover:text-brand-700 font-medium">
+          <Link href="/auth/login" className="text-brand-600 hover:text-brand-700 font-medium">
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </AuthLayout>

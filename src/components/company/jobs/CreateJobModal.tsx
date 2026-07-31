@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/utils/cn";
+import { getApiEndpoint } from "@/utils/apiConfig";
 
 interface CreateJobModalProps {
   isOpen: boolean;
@@ -68,15 +69,16 @@ export function CreateJobModal({ isOpen, onClose, job }: CreateJobModalProps) {
         preferred_skills: form.preferredSkills ? form.preferredSkills.split(",").map((s: string) => s.trim()) : [],
       };
 
+      const endpoint = getApiEndpoint("/company/ai/job-description");
       let res: Response | null = null;
       try {
-        res = await fetch("http://localhost:8000/api/v1/company/ai/job-description", {
+        res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
       } catch {
-        res = await fetch("http://127.0.0.1:8000/api/v1/company/ai/job-description", {
+        res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

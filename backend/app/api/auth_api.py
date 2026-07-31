@@ -1,9 +1,10 @@
 from typing import Optional
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.db.session import get_db
-from app.models.db_models import UserModel, CandidateModel, CompanyModel
+from app.models.db_models import UserModel, CandidateModel, CompanyModel, RecruiterModel
 from app.core.security import (
     hash_password, verify_password, create_access_token, create_refresh_token,
     decode_token, get_current_user
@@ -19,7 +20,7 @@ class RegisterRequest(BaseModel):
     name: str
     email: str
     password: str
-    role: str  # "candidate" | "company"
+    role: str  # "candidate" | "company" | "recruiter"
     company_name: Optional[str] = None
     phone: Optional[str] = None
 
@@ -43,7 +44,7 @@ class ProfileUpdateRequest(BaseModel):
 
 @router.post("/login")
 def login_user(payload: LoginRequest, db: Session = Depends(get_db)):
-    email_clean = payload.email.lower().trim()
+    email_clean = payload.email.lower().strip()
     user = db.query(UserModel).filter(UserModel.email == email_clean).first()
 
     if not user or not verify_password(payload.password, user.hashed_password):
@@ -78,68 +79,95 @@ def login_user(payload: LoginRequest, db: Session = Depends(get_db)):
 
 @router.post("/register")
 def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
-    email_clean = payload.email.lower().trim()
+    email_clean = payload.email.lower().strip()
+    if not email_clean or "@" not in email_clean:
+        raise HTTPException(status_code=400, detail="Invalid email address provided.")
+
     existing = db.query(UserModel).filter(UserModel.email == email_clean).first()
     if existing:
         raise HTTPException(status_code=400, detail="Account with this email already exists.")
 
-    user_id = f"usr-{int(db.query(UserModel).count()) + 1000}"
-    hashed_pwd = hash_password(payload.password)
+    try:
+        unique_suffix = uuid.uuid4().hex[:6]
+        user_id = f"usr-{int(db.query(UserModel).count()) + 1000}-{unique_suffix}"
+        hashed_pwd = hash_password(payload.password)
 
-    new_user = UserModel(
-        id=user_id,
-        email=email_clean,
-        hashed_password=hashed_pwd,
-        full_name=payload.name,
-        phone=payload.phone,
-        role=payload.role,
-        status="Pending Verification" if payload.role == "company" else "Active"
-    )
-    db.add(new_user)
-
-    if payload.role == "candidate":
-        can_id = f"can-{int(db.query(CandidateModel).count()) + 1000}"
-        candidate = CandidateModel(
-            id=can_id,
-            user_id=user_id,
-            name=payload.name,
+        new_user = UserModel(
+            id=user_id,
             email=email_clean,
+            hashed_password=hashed_pwd,
+            full_name=payload.name,
             phone=payload.phone,
-            status="Available"
+            role=payload.role,
+            status="Pending Verification" if payload.role == "company" else "Active"
         )
-        db.add(candidate)
+        db.add(new_user)
 
-    elif payload.role == "company":
-        cmp_id = f"cmp-{int(db.query(CompanyModel).count()) + 1000}"
-        company = CompanyModel(
-            id=cmp_id,
-            user_id=user_id,
-            name=payload.company_name or payload.name,
-            email=email_clean,
-            phone=payload.phone,
-            verification_status="Pending Approval",
-            company_status="Active"
-        )
-        db.add(company)
+        if payload.role == "candidate":
+            can_id = f"can-{int(db.query(CandidateModel).count()) + 1000}-{unique_suffix}"
+            candidate = CandidateModel(
+                id=can_id,
+                user_id=user_id,
+                name=payload.name,
+                email=email_clean,
+                phone=payload.phone,
+                status="Available"
+            )
+            db.add(candidate)
 
-    db.commit()
+        elif payload.role == "company":
+            cmp_id = f"cmp-{int(db.query(CompanyModel).count()) + 1000}-{unique_suffix}"
+            company = CompanyModel(
+                id=cmp_id,
+                user_id=user_id,
+                name=payload.company_name or payload.name,
+                email=email_clean,
+                phone=payload.phone,
+                verification_status="Pending Approval",
+                company_status="Active"
+            )
+            db.add(company)
 
-    access_token = create_access_token({"sub": new_user.id, "email": new_user.email, "role": new_user.role})
-    refresh_token = create_refresh_token({"sub": new_user.id})
+        elif payload.role == "recruiter":
+            rec_id = f"rec-{int(db.query(RecruiterModel).count()) + 1000}-{unique_suffix}"
+            recruiter = RecruiterModel(
+                id=rec_id,
+                user_id=user_id,
+                name=payload.name,
+                email=email_clean,
+                phone=payload.phone,
+                assigned_company=payload.company_name or "Unassigned",
+                assigned_companies=[payload.company_name] if payload.company_name else [],
+                status="Active"
+            )
+            db.add(recruiter)
 
-    return {
-        "status": "success",
-        "message": "Registration successful.",
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "user": {
-            "id": new_user.id,
-            "name": new_user.full_name,
-            "email": new_user.email,
-            "role": new_user.role,
-            "status": new_user.status
+        db.commit()
+        db.refresh(new_user)
+
+        access_token = create_access_token({"sub": new_user.id, "email": new_user.email, "role": new_user.role})
+        refresh_token = create_refresh_token({"sub": new_user.id})
+
+        return {
+            "status": "success",
+            "message": "Registration successful.",
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user": {
+                "id": new_user.id,
+                "name": new_user.full_name,
+                "email": new_user.email,
+                "role": new_user.role,
+                "status": new_user.status,
+                "phone": new_user.phone
+            }
         }
-    }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to register user in PostgreSQL: {str(e)}"
+        )
 
 @router.post("/refresh-token")
 def refresh_access_token(payload: RefreshTokenRequest, db: Session = Depends(get_db)):
@@ -157,7 +185,7 @@ def refresh_access_token(payload: RefreshTokenRequest, db: Session = Depends(get
 
 @router.post("/forgot-password")
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    user = db.query(UserModel).filter(UserModel.email == payload.email.lower().trim()).first()
+    user = db.query(UserModel).filter(UserModel.email == payload.email.lower().strip()).first()
     if not user:
         return {"status": "success", "message": "If account exists, password reset link has been dispatched."}
 

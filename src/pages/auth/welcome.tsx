@@ -2,6 +2,7 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function WelcomePage() {
   return (
@@ -20,12 +21,12 @@ export default function WelcomePage() {
               RakNova
             </span>
           </div>
-          <a
+          <Link
             href="/"
             className="text-sm text-gray-500 hover:text-brand-600 transition-colors"
           >
             ← Back to Home
-          </a>
+          </Link>
         </div>
       </header>
 

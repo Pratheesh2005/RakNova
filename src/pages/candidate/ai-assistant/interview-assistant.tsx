@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { cn } from "@/utils/cn";
+import { getApiEndpoint } from "@/utils/apiConfig";
 
 interface Question {
   id: number;
@@ -83,14 +84,15 @@ export default function InterviewAssistantPage() {
       form.append("num_questions", String(numQuestions));
       form.append("language", language);
 
+      const endpointQuestions = getApiEndpoint("/ai/interview/questions");
       let res: Response | null = null;
       try {
-        res = await fetch("http://localhost:8000/api/v1/ai/interview/questions", {
+        res = await fetch(endpointQuestions, {
           method: "POST",
           body: form,
         });
       } catch {
-        res = await fetch("http://127.0.0.1:8000/api/v1/ai/interview/questions", {
+        res = await fetch(endpointQuestions, {
           method: "POST",
           body: form,
         });
@@ -129,14 +131,15 @@ export default function InterviewAssistantPage() {
       form.append("difficulty", difficulty);
       form.append("questions_and_answers", JSON.stringify(qaList));
 
+      const endpointEvaluate = getApiEndpoint("/ai/interview/evaluate");
       let res: Response | null = null;
       try {
-        res = await fetch("http://localhost:8000/api/v1/ai/interview/evaluate", {
+        res = await fetch(endpointEvaluate, {
           method: "POST",
           body: form,
         });
       } catch {
-        res = await fetch("http://127.0.0.1:8000/api/v1/ai/interview/evaluate", {
+        res = await fetch(endpointEvaluate, {
           method: "POST",
           body: form,
         });

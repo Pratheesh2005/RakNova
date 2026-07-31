@@ -4,8 +4,8 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
 # PostgreSQL connection URL for raknova_db with user credentials
-POSTGRES_DEFAULT_URL = "postgresql://postgres:0909@localhost:5432/raknova_db"
-DATABASE_URL = os.getenv("DATABASE_URL") or getattr(settings, "DATABASE_URL", None) or POSTGRES_DEFAULT_URL
+POSTGRES_DEFAULT_URL = "postgresql://postgres:0907@localhost:5432/raknova_db"
+DATABASE_URL = getattr(settings, "DATABASE_URL", None) or os.getenv("DATABASE_URL") or POSTGRES_DEFAULT_URL
 
 try:
     connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}

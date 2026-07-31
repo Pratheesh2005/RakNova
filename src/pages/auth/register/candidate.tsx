@@ -9,6 +9,8 @@ import Link from "next/link";
 import { cn } from "@/utils/cn";
 import { useRouter } from "next/router";
 
+import { registerUserApi } from "@/services/authService";
+
 export default function CandidateRegistrationPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -20,6 +22,7 @@ export default function CandidateRegistrationPage() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [subscribe, setSubscribe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const validate = (): boolean => {
@@ -37,11 +40,23 @@ export default function CandidateRegistrationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setApiError(null);
     if (!validate()) return;
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setLoading(false);
-    router.push("/auth/registration-success");
+    try {
+      await registerUserApi({
+        name: fullName,
+        email,
+        password,
+        role: "candidate",
+        phone: `${countryCode} ${phone}`,
+      });
+      setLoading(false);
+      router.push("/auth/registration-success");
+    } catch (err: any) {
+      setLoading(false);
+      setApiError(err.message || "Failed to register candidate account.");
+    }
   };
 
   return (
@@ -50,6 +65,11 @@ export default function CandidateRegistrationPage() {
       subtitle="Start your career journey with RakNova"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {apiError && (
+          <div className="p-3 text-sm text-red-700 bg-red-100 border border-red-300 rounded-lg">
+            {apiError}
+          </div>
+        )}
         {/* Full Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

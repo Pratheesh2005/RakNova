@@ -4,6 +4,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
+import { getApiEndpoint } from "@/utils/apiConfig";
 
 interface MissingKeyword {
   keyword: string;
@@ -141,14 +142,15 @@ export default function ATSOptimizerPage() {
       const formData = new FormData();
       formData.append("file", file);
       
+      const endpoint = getApiEndpoint("/ai/resume/optimize");
       let res: Response | null = null;
       try {
-        res = await fetch("http://localhost:8000/api/v1/ai/resume/optimize", {
+        res = await fetch(endpoint, {
           method: "POST",
           body: formData,
         });
       } catch {
-        res = await fetch("http://127.0.0.1:8000/api/v1/ai/resume/optimize", {
+        res = await fetch(endpoint, {
           method: "POST",
           body: formData,
         });

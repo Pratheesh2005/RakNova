@@ -103,6 +103,54 @@ export function login(email: string, password: string): AuthUser | null {
   return user;
 }
 
+import { API_BASE_URL } from "@/utils/apiConfig";
+
+const API_BASE = API_BASE_URL;
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  role: "candidate" | "company" | "recruiter";
+  company_name?: string;
+  phone?: string;
+}
+
+/**
+ * Register user with PostgreSQL backend API.
+ */
+export async function registerUserApi(payload: RegisterPayload): Promise<{ user: AuthUser; access_token: string }> {
+  const response = await fetch(`${API_BASE}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.detail || data.message || "Registration failed.");
+  }
+
+  const authUser: AuthUser = {
+    id: data.user.id,
+    name: data.user.name,
+    email: data.user.email,
+    role: data.user.role as UserRole,
+    companyName: payload.company_name,
+    loginTime: new Date().toISOString(),
+    status: data.user.status,
+  };
+
+  saveUser(authUser);
+  if (data.access_token) {
+    localStorage.setItem("raknova_access_token", data.access_token);
+  }
+  return { user: authUser, access_token: data.access_token };
+}
+
 /**
  * Register candidate account.
  */

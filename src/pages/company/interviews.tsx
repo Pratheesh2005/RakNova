@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/utils/cn";
+import { getApiEndpoint } from "@/utils/apiConfig";
 
 interface Question {
   id: number;
@@ -58,15 +59,16 @@ export default function RecruiterInterviewPage() {
         num_questions: numQuestions,
       };
 
+      const endpoint = getApiEndpoint("/company/ai/interview-generator");
       let res: Response | null = null;
       try {
-        res = await fetch("http://localhost:8000/api/v1/company/ai/interview-generator", {
+        res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
       } catch {
-        res = await fetch("http://127.0.0.1:8000/api/v1/company/ai/interview-generator", {
+        res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
