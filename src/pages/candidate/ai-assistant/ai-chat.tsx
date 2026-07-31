@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
 import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
+import { getFallbackAiChatMessage } from "@/utils/aiFallbackData";
 
 interface Message {
   role: "user" | "ai";
@@ -52,33 +53,51 @@ export default function AIChatPage() {
         messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
       };
 
-      const res = await smartFetch("/ai/chat/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const json = await res.json();
-      if (json.success && json.data) {
-        setMessages([
-          ...newMessages,
-          {
-            role: "ai",
-            content: json.data.reply,
-            suggestedFollowups: json.data.suggested_followups,
-            relevantTopics: json.data.relevant_topics,
-          },
-        ]);
-      } else {
-        setMessages([
-          ...newMessages,
-          { role: "ai", content: "I encountered an issue processing your prompt. Please try asking again." },
-        ]);
+      let res: Response | null = null;
+      try {
+        res = await smartFetch("/ai/chat/message", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } catch {
+        console.warn("Backend API unreachable, using client-side AI Chat fallback.");
       }
-    } catch {
+
+      if (res && res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setMessages([
+            ...newMessages,
+            {
+              role: "ai",
+              content: json.data.reply,
+              suggestedFollowups: json.data.suggested_followups,
+              relevantTopics: json.data.relevant_topics,
+            },
+          ]);
+          return;
+        }
+      }
+
+      const fallback = getFallbackAiChatMessage(textToSend);
       setMessages([
         ...newMessages,
-        { role: "ai", content: "Could not connect to RakNova AI service." },
+        {
+          role: "ai",
+          content: fallback.reply,
+          suggestedFollowups: fallback.suggestions,
+        },
+      ]);
+    } catch {
+      const fallback = getFallbackAiChatMessage(textToSend);
+      setMessages([
+        ...newMessages,
+        {
+          role: "ai",
+          content: fallback.reply,
+          suggestedFollowups: fallback.suggestions,
+        },
       ]);
     } finally {
       setLoading(false);

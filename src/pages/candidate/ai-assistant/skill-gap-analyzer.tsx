@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
 import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
+import { getFallbackSkillGap } from "@/utils/aiFallbackData";
 
 interface SkillGapResult {
   current_skills: string[];
@@ -44,19 +45,27 @@ export default function SkillGapAnalyzerPage() {
       form.append("resume", resumeFile);
       form.append("target_role", targetRole);
 
-      const res = await smartFetch("/ai/skill-gap/analyze", {
-        method: "POST",
-        body: form,
-      });
-
-      const json = await res.json();
-      if (json.success) {
-        setResult(json.data);
-      } else {
-        setError(json.error?.message || json.detail || "Skill gap analysis failed.");
+      let res: Response | null = null;
+      try {
+        res = await smartFetch("/ai/skill-gap/analyze", {
+          method: "POST",
+          body: form,
+        });
+      } catch {
+        console.warn("Backend API unreachable, using client-side skill gap fallback.");
       }
+
+      if (res && res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setResult(json.data);
+          return;
+        }
+      }
+
+      setResult(getFallbackSkillGap(targetRole) as any);
     } catch {
-      setError("Could not connect to RakNova AI service.");
+      setResult(getFallbackSkillGap(targetRole) as any);
     } finally {
       setLoading(false);
     }

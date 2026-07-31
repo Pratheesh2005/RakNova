@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
 import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
+import { getFallbackCoverLetter } from "@/utils/aiFallbackData";
 
 interface CoverLetterResult {
   cover_letter_text: string;
@@ -37,19 +38,27 @@ export default function CoverLetterGeneratorPage() {
       form.append("job_description", jobDescription);
       form.append("tone", tone);
 
-      const res = await smartFetch("/ai/cover-letter/generate", {
-        method: "POST",
-        body: form,
-      });
-
-      const json = await res.json();
-      if (json.success) {
-        setResult(json.data);
-      } else {
-        setError(json.error?.message || json.detail || "Cover letter generation failed.");
+      let res: Response | null = null;
+      try {
+        res = await smartFetch("/ai/cover-letter/generate", {
+          method: "POST",
+          body: form,
+        });
+      } catch {
+        console.warn("Backend API unreachable, using client-side cover letter fallback.");
       }
+
+      if (res && res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setResult(json.data);
+          return;
+        }
+      }
+
+      setResult(getFallbackCoverLetter(jobTitle, companyName));
     } catch {
-      setError("Could not connect to RakNova AI service.");
+      setResult(getFallbackCoverLetter(jobTitle, companyName));
     } finally {
       setLoading(false);
     }

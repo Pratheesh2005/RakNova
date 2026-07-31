@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
 import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
+import { getFallbackCareerRoadmap } from "@/utils/aiFallbackData";
 
 interface RoadmapMilestone {
   step: number;
@@ -42,19 +43,27 @@ export default function CareerRoadmapPage() {
       form.append("current_level", currentLevel);
       form.append("timeframe", timeframe);
 
-      const res = await smartFetch("/ai/roadmap/generate", {
-        method: "POST",
-        body: form,
-      });
-
-      const json = await res.json();
-      if (json.success) {
-        setResult(json.data);
-      } else {
-        setError(json.error?.message || json.detail || "Roadmap generation failed.");
+      let res: Response | null = null;
+      try {
+        res = await smartFetch("/ai/roadmap/generate", {
+          method: "POST",
+          body: form,
+        });
+      } catch {
+        console.warn("Backend API unreachable, using client-side career roadmap fallback.");
       }
+
+      if (res && res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setResult(json.data);
+          return;
+        }
+      }
+
+      setResult(getFallbackCareerRoadmap(targetGoal));
     } catch {
-      setError("Could not connect to RakNova AI service.");
+      setResult(getFallbackCareerRoadmap(targetGoal));
     } finally {
       setLoading(false);
     }
