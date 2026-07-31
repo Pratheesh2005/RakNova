@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
-import { getApiEndpoint } from "@/utils/apiConfig";
+import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
 
 interface SkillGapResult {
   current_skills: string[];
@@ -44,19 +44,10 @@ export default function SkillGapAnalyzerPage() {
       form.append("resume", resumeFile);
       form.append("target_role", targetRole);
 
-      const endpoint = getApiEndpoint("/ai/skill-gap/analyze");
-      let res: Response | null = null;
-      try {
-        res = await fetch(endpoint, {
-          method: "POST",
-          body: form,
-        });
-      } catch {
-        res = await fetch(endpoint, {
-          method: "POST",
-          body: form,
-        });
-      }
+      const res = await smartFetch("/ai/skill-gap/analyze", {
+        method: "POST",
+        body: form,
+      });
 
       const json = await res.json();
       if (json.success) {

@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
-import { getApiEndpoint } from "@/utils/apiConfig";
+import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
 
 interface CoverLetterResult {
   cover_letter_text: string;
@@ -37,19 +37,10 @@ export default function CoverLetterGeneratorPage() {
       form.append("job_description", jobDescription);
       form.append("tone", tone);
 
-      const endpoint = getApiEndpoint("/ai/cover-letter/generate");
-      let res: Response | null = null;
-      try {
-        res = await fetch(endpoint, {
-          method: "POST",
-          body: form,
-        });
-      } catch {
-        res = await fetch(endpoint, {
-          method: "POST",
-          body: form,
-        });
-      }
+      const res = await smartFetch("/ai/cover-letter/generate", {
+        method: "POST",
+        body: form,
+      });
 
       const json = await res.json();
       if (json.success) {

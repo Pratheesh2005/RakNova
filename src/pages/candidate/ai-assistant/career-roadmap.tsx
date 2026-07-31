@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
-import { getApiEndpoint } from "@/utils/apiConfig";
+import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
 
 interface RoadmapMilestone {
   step: number;
@@ -42,19 +42,10 @@ export default function CareerRoadmapPage() {
       form.append("current_level", currentLevel);
       form.append("timeframe", timeframe);
 
-      const endpoint = getApiEndpoint("/ai/roadmap/generate");
-      let res: Response | null = null;
-      try {
-        res = await fetch(endpoint, {
-          method: "POST",
-          body: form,
-        });
-      } catch {
-        res = await fetch(endpoint, {
-          method: "POST",
-          body: form,
-        });
-      }
+      const res = await smartFetch("/ai/roadmap/generate", {
+        method: "POST",
+        body: form,
+      });
 
       const json = await res.json();
       if (json.success) {

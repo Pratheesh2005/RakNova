@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { cn } from "@/utils/cn";
-import { getApiEndpoint } from "@/utils/apiConfig";
+import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
 
 interface Question {
   id: number;
@@ -84,19 +84,10 @@ export default function InterviewAssistantPage() {
       form.append("num_questions", String(numQuestions));
       form.append("language", language);
 
-      const endpointQuestions = getApiEndpoint("/ai/interview/questions");
-      let res: Response | null = null;
-      try {
-        res = await fetch(endpointQuestions, {
-          method: "POST",
-          body: form,
-        });
-      } catch {
-        res = await fetch(endpointQuestions, {
-          method: "POST",
-          body: form,
-        });
-      }
+      const res = await smartFetch("/ai/interview/questions", {
+        method: "POST",
+        body: form,
+      });
 
       const json = await res.json();
       if (json.success && json.data?.questions) {
@@ -131,19 +122,10 @@ export default function InterviewAssistantPage() {
       form.append("difficulty", difficulty);
       form.append("questions_and_answers", JSON.stringify(qaList));
 
-      const endpointEvaluate = getApiEndpoint("/ai/interview/evaluate");
-      let res: Response | null = null;
-      try {
-        res = await fetch(endpointEvaluate, {
-          method: "POST",
-          body: form,
-        });
-      } catch {
-        res = await fetch(endpointEvaluate, {
-          method: "POST",
-          body: form,
-        });
-      }
+      const res = await smartFetch("/ai/interview/evaluate", {
+        method: "POST",
+        body: form,
+      });
 
       const json = await res.json();
       if (json.success) {

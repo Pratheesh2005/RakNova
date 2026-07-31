@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
-import { getApiEndpoint } from "@/utils/apiConfig";
+import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
 
 interface ResumeAnalysis {
   overall_score: number;
@@ -83,20 +83,10 @@ export default function ResumeAnalyzerPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const endpoint = getApiEndpoint("/ai/resume/analyze");
-      let response: Response | null = null;
-      try {
-        response = await fetch(endpoint, {
-          method: "POST",
-          body: formData,
-        });
-      } catch {
-        // Fallback try
-        response = await fetch(endpoint, {
-          method: "POST",
-          body: formData,
-        });
-      }
+      const response = await smartFetch("/ai/resume/analyze", {
+        method: "POST",
+        body: formData,
+      });
 
       const result = await response.json();
       if (response.ok && result.success) {

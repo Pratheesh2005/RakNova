@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/utils/cn";
-import { getApiEndpoint } from "@/utils/apiConfig";
+import { getApiEndpoint, smartFetch } from "@/utils/apiConfig";
 
 interface MissingKeyword {
   keyword: string;
@@ -142,19 +142,10 @@ export default function ATSOptimizerPage() {
       const formData = new FormData();
       formData.append("file", file);
       
-      const endpoint = getApiEndpoint("/ai/resume/optimize");
-      let res: Response | null = null;
-      try {
-        res = await fetch(endpoint, {
-          method: "POST",
-          body: formData,
-        });
-      } catch {
-        res = await fetch(endpoint, {
-          method: "POST",
-          body: formData,
-        });
-      }
+      const res = await smartFetch("/ai/resume/optimize", {
+        method: "POST",
+        body: formData,
+      });
 
       const json = await res.json();
       if (res.ok && json.success) {
